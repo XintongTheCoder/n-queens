@@ -21,7 +21,7 @@ window.findNRooksSolution = function (n) {
       return true;
     }
     return _.range(0, n).some((j) => {
-      if (!_canPlace(i, j, solution, false)) {
+      if (!_canPlace(i, j, n, solution, false)) {
         return false;
       }
       solution[i][j] = 1;
@@ -38,7 +38,7 @@ window.findNRooksSolution = function (n) {
   return solution;
 };
 
-window._canPlace = function (rowIndex, colIndex, solution, checkDiagonal) {
+window._canPlace = function (rowIndex, colIndex, n, solution, checkDiagonal) {
   // Check col
   const conflictInCol = _.range(0, rowIndex).some(
     (i) => solution[i][colIndex] === 1
@@ -73,7 +73,7 @@ window.countNRooksSolutions = function (n) {
       return 1;
     }
     return _.range(0, n).reduce((accum, j) => {
-      if (!_canPlace(i, j, solution, false)) {
+      if (!_canPlace(i, j, n, solution, false)) {
         return accum;
       }
       solution[i][j] = 1;
@@ -92,7 +92,27 @@ window.countNRooksSolutions = function (n) {
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function (n) {
-  var solution = undefined; //fixme
+  var solution = Array(n)
+    .fill()
+    .map(() => Array(n).fill(0));
+  // backtracking will return true if found a solution
+  var backtracking = (i) => {
+    if (i === n) {
+      return true;
+    }
+    return _.range(0, n).some((j) => {
+      if (!_canPlace(i, j, n, solution, true)) {
+        return false;
+      }
+      solution[i][j] = 1;
+      const result = backtracking(i + 1);
+      solution[i][j] = result ? 1 : 0;
+
+      return result;
+    });
+  };
+
+  backtracking(0);
 
   console.log(
     'Single solution for ' + n + ' queens:',
@@ -103,7 +123,28 @@ window.findNQueensSolution = function (n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function (n) {
-  var solutionCount = undefined; //fixme
+  var solutionCount = 0;
+  var solution = Array(n)
+    .fill()
+    .map(() => Array(n).fill(0));
+  // backtracking will return true if found a solution
+  var backtracking = (i) => {
+    if (i === n) {
+      return 1;
+    }
+    return _.range(0, n).reduce((accum, j) => {
+      if (!_canPlace(i, j, n, solution, true)) {
+        return accum;
+      }
+      solution[i][j] = 1;
+      const result = backtracking(i + 1);
+      solution[i][j] = 0;
+
+      return accum + result;
+    }, 0);
+  };
+
+  solutionCount = backtracking(0);
 
   console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
