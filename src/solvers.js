@@ -12,30 +12,49 @@
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n rooks placed such that none of them can attack each other
 window.findNRooksSolution = function (n) {
+  const config = {
+    findAllSolutions: false,
+    checkDiagonal: false,
+  };
   var solution = Array(n)
     .fill()
     .map(() => Array(n).fill(0));
-  // backtracking will return true if found a solution
-  var backtracking = (i) => {
-    if (i === n) {
-      return true;
-    }
-    return _.range(0, n).some((j) => {
-      if (!_canPlace(i, j, n, solution, false)) {
-        return false;
-      }
-      solution[i][j] = 1;
-      const result = backtracking(i + 1);
-      solution[i][j] = result ? 1 : 0;
 
-      return result;
-    });
-  };
-
-  backtracking(0);
+  this._backtracking(0, n, solution, config);
 
   console.log('Single solution for ' + n + ' rooks:', JSON.stringify(solution));
   return solution;
+};
+
+// backtracking will return 1 if found a solution, 0 if no solution
+window._backtracking = function (i, n, solution, config) {
+  if (i === n) {
+    return 1;
+  }
+  if (config.findAllSolutions) {
+    // Need to find all solutions
+    return _.range(0, n).reduce((accum, j) => {
+      if (!_canPlace(i, j, n, solution, config.checkDiagonal)) {
+        return accum;
+      }
+      solution[i][j] = 1;
+      const result = _backtracking(i + 1, n, solution, config);
+      solution[i][j] = 0; // solution matrix will be reset regardless of whether found a valid solution
+
+      return accum + result;
+    }, 0);
+  }
+  // Only need to find one solution
+  return _.range(0, n).some((j) => {
+    if (!_canPlace(i, j, n, solution, config.checkDiagonal)) {
+      return 0;
+    }
+    solution[i][j] = 1;
+    const result = _backtracking(i + 1, n, solution, config);
+    solution[i][j] = result ? 1 : 0; // solution matrix will only be reset in case of no valid solution found
+
+    return result;
+  });
 };
 
 window._canPlace = function (rowIndex, colIndex, n, solution, checkDiagonal) {
@@ -63,28 +82,17 @@ window._canPlace = function (rowIndex, colIndex, n, solution, checkDiagonal) {
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
 window.countNRooksSolutions = function (n) {
+  const config = {
+    findAllSolutions: true,
+    checkDiagonal: false,
+  };
   var solutionCount = 0;
   var solution = Array(n)
     .fill()
     .map(() => Array(n).fill(0));
   // backtracking will return true if found a solution
-  var backtracking = (i) => {
-    if (i === n) {
-      return 1;
-    }
-    return _.range(0, n).reduce((accum, j) => {
-      if (!_canPlace(i, j, n, solution, false)) {
-        return accum;
-      }
-      solution[i][j] = 1;
-      const result = backtracking(i + 1);
-      solution[i][j] = 0;
 
-      return accum + result;
-    }, 0);
-  };
-
-  solutionCount = backtracking(0);
+  solutionCount = this._backtracking(0, n, solution, config);
 
   console.log('Number of solutions for ' + n + ' rooks:', solutionCount);
   return solutionCount;
@@ -92,27 +100,15 @@ window.countNRooksSolutions = function (n) {
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function (n) {
+  const config = {
+    findAllSolutions: false,
+    checkDiagonal: true,
+  };
   var solution = Array(n)
     .fill()
     .map(() => Array(n).fill(0));
-  // backtracking will return true if found a solution
-  var backtracking = (i) => {
-    if (i === n) {
-      return true;
-    }
-    return _.range(0, n).some((j) => {
-      if (!_canPlace(i, j, n, solution, true)) {
-        return false;
-      }
-      solution[i][j] = 1;
-      const result = backtracking(i + 1);
-      solution[i][j] = result ? 1 : 0;
 
-      return result;
-    });
-  };
-
-  backtracking(0);
+  this._backtracking(0, n, solution, config);
 
   console.log(
     'Single solution for ' + n + ' queens:',
@@ -123,28 +119,16 @@ window.findNQueensSolution = function (n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function (n) {
+  const config = {
+    findAllSolutions: true,
+    checkDiagonal: true,
+  };
   var solutionCount = 0;
   var solution = Array(n)
     .fill()
     .map(() => Array(n).fill(0));
-  // backtracking will return true if found a solution
-  var backtracking = (i) => {
-    if (i === n) {
-      return 1;
-    }
-    return _.range(0, n).reduce((accum, j) => {
-      if (!_canPlace(i, j, n, solution, true)) {
-        return accum;
-      }
-      solution[i][j] = 1;
-      const result = backtracking(i + 1);
-      solution[i][j] = 0;
 
-      return accum + result;
-    }, 0);
-  };
-
-  solutionCount = backtracking(0);
+  solutionCount = this._backtracking(0, n, solution, config);
 
   console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
